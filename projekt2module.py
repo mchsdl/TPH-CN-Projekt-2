@@ -55,4 +55,4 @@ def plot(Testfunktion,nmin,nmax,Vergleichsintegralwert,G_Wert=3,log=False,save=F
 
 
 
-#plot(exp,0,4,exp(1)-1,save="images/testplot.jpg")
+plot(exp,0,4,exp(1)-1,save="images/testplot.jpg")
