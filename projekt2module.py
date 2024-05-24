@@ -25,7 +25,7 @@ def G5(h,funktion):
             summe += h/2*funktion(h/2*x5[j]+schritt[i]+h/2)*a5[j]
     return summe
 
-def plot(Testfunktion,nmin,nmax,Vergleichsintegralwert,G_Wert=3,log=False,save=False):
+def plot(Testfunktion,nmin,nmax,Vergleichsintegralwert,G_Wert=3,log=True,save=False):
     tf,vgl = Testfunktion, Vergleichsintegralwert
 
     h,err = [],[]
@@ -42,7 +42,9 @@ def plot(Testfunktion,nmin,nmax,Vergleichsintegralwert,G_Wert=3,log=False,save=F
     err.reverse()
 
     plt.figure(dpi=500)
-    plt.plot(h,err,"-r")
+    plt.xlabel("h")
+    plt.ylabel(r"|$\Delta_{absolut}$|")
+    plt.plot(h,np.abs(err),"-r")
 
     if log:
         plt.xscale("log")
