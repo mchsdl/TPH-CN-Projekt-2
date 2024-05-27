@@ -2,6 +2,10 @@
 import numpy as np
 from numpy import exp
 import matplotlib.pyplot as plt
+from scipy.optimize import curve_fit
+
+def potfunc(x, c, p):
+    return c*(x**p)
 
 def G3(h,funktion):
     schritt = np.arange(0,1,step=h)
@@ -38,13 +42,16 @@ def plot(Testfunktion,nmin,nmax,Vergleichsintegralwert,G_Wert=3,log=True,save=Fa
         else:
             print("Fehlermeldung")
             break
-    h.reverse()
-    err.reverse()
+
+    params, covariance = curve_fit(potfunc, h, np.abs(err))
+    c_fit, p_fit = params
+    print(f"Angepasste Parameter: c = {c_fit}, p = {p_fit}")
 
     plt.figure(dpi=500)
     plt.xlabel("h")
     plt.ylabel(r"|$\Delta_{absolut}$|")
     plt.plot(h,np.abs(err),"-r")
+    plt.plot(np.arange(1/(1+nmax),1/(1+nmin), 0.01),potfunc(np.arange(1/(1+nmax),1/(1+nmin), 0.01), c_fit, p_fit), "--")
 
     if log:
         plt.xscale("log")
@@ -53,8 +60,3 @@ def plot(Testfunktion,nmin,nmax,Vergleichsintegralwert,G_Wert=3,log=True,save=Fa
         plt.savefig(save)
         
     return 0
-
-
-
-
-plot(exp,0,4,exp(1)-1,save="images/testplot.jpg")
