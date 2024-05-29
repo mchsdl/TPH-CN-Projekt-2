@@ -3,6 +3,8 @@ import numpy as np
 from numpy import exp
 import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
+import openpyxl
+import pandas as pd
 
 def potfunc(x, c, p):
     return c*(x**p)
@@ -29,16 +31,30 @@ def G5(h,funktion):
             summe += h/2*funktion(h/2*x5[j]+schritt[i]+h/2)*a5[j]
     return summe
 
-def plot(Testfunktion,nmin,nmax,Vergleichsintegralwert,G_Wert=3,log=True,save=False):
+def plot(Testfunktion,nmin,nmax,Vergleichsintegralwert,G_Wert=3,log=True,name=False):
     tf,vgl = Testfunktion, Vergleichsintegralwert
 
-    h,err = [],[]
+    # Create a new Excel workbook
+    workbook = openpyxl.Workbook()
+    # Select the default sheet (usually named 'Sheet')
+    sheet = workbook.active
+    sheet.append([name])
+    sheet.append(["h", "G3", "VGL", "abs-error"])
+
+    h,err,val = [],[],[]
     for i in range(nmin,nmax):
         h.append(1/(i+1))
         if G_Wert==3:
-            err.append(G3(1/(i+1),tf)-vgl)
+            value = G3(1/(i+1),tf)
+            error = value-vgl
+            err.append(error)
+            val.append(value)
+            
         elif G_Wert==5:
-            err.append(G5(1/(i+1),tf)-vgl)
+            value = G3(1/(i+1),tf)
+            error = value-vgl
+            err.append(error)
+            val.append(value)
         else:
             print("Fehlermeldung")
             break
@@ -46,6 +62,18 @@ def plot(Testfunktion,nmin,nmax,Vergleichsintegralwert,G_Wert=3,log=True,save=Fa
     params, covariance = curve_fit(potfunc, h, np.abs(err))
     c_fit, p_fit = params
     print(f"Angepasste Parameter: c = {c_fit}, p = {p_fit}")
+
+    h.reverse()
+    val.reverse()
+    err.reverse()
+
+    for i in range(0, nmax-nmin):
+        print(i)
+        sheet.append([h[i], val[i], vgl, err[i]])
+
+    for cell in sheet['B']:
+        cell.number_format = '0.000000000000000E+00'
+    sheet.column_dimensions['B'].width = 24
 
     plt.figure(dpi=500)
     plt.xlabel("h")
@@ -56,7 +84,15 @@ def plot(Testfunktion,nmin,nmax,Vergleichsintegralwert,G_Wert=3,log=True,save=Fa
     if log:
         plt.xscale("log")
     
-    if save:
-        plt.savefig(save)
+    if name:
+        plotsave = 'images/' + name + '.jpg'
+        plt.savefig(plotsave)
+
+        # Save the workbook to a file
+        workbooksave = 'tables/'+name+'.xlsx'
+        workbook.save(workbooksave)
+
+        # Print a success message
+        print("Excel file created successfully!")
         
     return 0
