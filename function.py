@@ -1,10 +1,26 @@
-import numpy as np
-from numpy import exp
 import matplotlib.pyplot as plt
+import numpy as np
+from matplotlib.ticker import FuncFormatter
+from fractions import Fraction
 
-def tf7(x):
-    return (1/(0.01*np.sqrt(2*np.pi))*np.exp(-1/2*((x-0.5)/0.01)**2))
+# Sample data
+x = np.linspace(0, 1, 100)
+y = np.sin(2 * np.pi * x)
 
-plt.plot(np.arange(0, 1, 0.0001), tf7(np.arange(0, 1, 0.0001)))
+# Function to format x-ticks as fractions
+def fraction_formatter(x, pos):
+    frac = Fraction(x).limit_denominator()
+    return f'{frac}'
+
+# Create the plot
+fig, ax = plt.subplots()
+ax.plot(x, y)
+
+# Apply the formatter to the x-axis
+formatter = FuncFormatter(fraction_formatter)
+ax.xaxis.set_major_formatter(formatter)
+
+# Adjust the ticks location (optional)
+ax.set_xticks(np.linspace(0, 1, 11))
 
 plt.show()

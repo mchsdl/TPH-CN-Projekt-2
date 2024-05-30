@@ -2,9 +2,11 @@
 import numpy as np
 from numpy import exp
 import matplotlib.pyplot as plt
-from scipy.optimize import curve_fit
 import openpyxl
 import pandas as pd
+from matplotlib.ticker import FuncFormatter
+from matplotlib.ticker import NullLocator
+
 
 def potfunc(x, c, p):
     return c*(x**p)
@@ -31,7 +33,7 @@ def G5(h,funktion):
             summe += h/2*funktion(h/2*x5[j]+schritt[i]+h/2)*a5[j]
     return summe
 
-def plot(Testfunktion,nmin,nmax,Vergleichsintegralwert,G_Wert=3,log=True,name=False):
+def plot(Testfunktion,nmin,nmax,Vergleichsintegralwert,G_Wert=3,log=True,name=False, plottitle=""):
     tf,vgl = Testfunktion, Vergleichsintegralwert
 
     # Create a new Excel workbook
@@ -51,7 +53,7 @@ def plot(Testfunktion,nmin,nmax,Vergleichsintegralwert,G_Wert=3,log=True,name=Fa
             val.append(value)
             
         elif G_Wert==5:
-            value = G3(1/(i+1),tf)
+            value = G5(1/(i+1),tf)
             error = value-vgl
             err.append(error)
             val.append(value)
@@ -59,30 +61,52 @@ def plot(Testfunktion,nmin,nmax,Vergleichsintegralwert,G_Wert=3,log=True,name=Fa
             print("Fehlermeldung")
             break
 
-    params, covariance = curve_fit(potfunc, h, np.abs(err))
-    c_fit, p_fit = params
-    print(f"Angepasste Parameter: c = {c_fit}, p = {p_fit}")
-
     h.reverse()
     val.reverse()
     err.reverse()
 
     for i in range(0, nmax-nmin):
-        print(i)
         sheet.append([h[i], val[i], vgl, err[i]])
 
     for cell in sheet['B']:
         cell.number_format = '0.000000000000000E+00'
     sheet.column_dimensions['B'].width = 24
 
-    plt.figure(dpi=500)
-    plt.xlabel("h")
-    plt.ylabel(r"|$\Delta_{absolut}$|")
-    plt.plot(h,np.abs(err),"-r")
-    plt.plot(np.arange(1/(1+nmax),1/(1+nmin), 0.01),potfunc(np.arange(1/(1+nmax),1/(1+nmin), 0.01), c_fit, p_fit), "--")
+    fig, ax = plt.subplots()
+
+    # Create the plot
+    fig, ax = plt.subplots(dpi=500)
+    ax.set_title(plottitle)
+    ax.set_xlabel("h")
+    ax.set_ylabel(r"|$\Delta_{absolut}$|")
+    ax.plot(h, np.abs(err), "-r")
 
     if log:
-        plt.xscale("log")
+        ax.set_xscale("log")
+        ax.set_yscale("log")
+
+        # Automatische x-Ticks deaktivieren
+        ax.minorticks_off()
+
+        x1,x2,x3,x4 = [],[],[],[]
+
+        schrittweite = 5
+        for i in range(nmin,nmax):
+            x1.append(1/(i+1))
+            if int((i+1)/schrittweite)==(i+1)/schrittweite:
+                x2.append(i+1)
+                x4.append(1/(i+1))
+        x1 = np.array(x1)
+        x2 = np.array(x2)
+        for i in range(len(x2)):
+            x3.append(r"$\frac{1}{"+str(x2[i])+ "}$")
+
+        
+
+        ax.set_xticks(x4, labels=x3)
+
+        ax.grid(alpha=0.3)
+
     
     if name:
         plotsave = 'images/' + name + '.jpg'
